@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Zenoh router for testing
+  zenoh-router:
+    image: eclipse/zenoh:latest
+    container_name: zenoh-router
+    ports:
+      - "7447:7447/tcp"
+      - "7446:7446/tcp"
+    environment:
+      - RUST_LOG=info
+    command: ["--mode", "router", "--listen", "tcp/0.0.0.0:7447"]
+
+  # ZRC test client
+  zrc-client:
+    build: .
+    container_name: zrc-client
+    depends_on:
+      - zenoh-router
+    environment:
+      - RUST_LOG=info
+    command: ["python", "examples/basic_usage.py"]
+
+  # ZRC test server
+  zrc-server:
+    build: .
+    container_name: zrc-server
+    depends_on:
+      - zenoh-router
+    environment:
+      - RUST_LOG=info
+    command: ["python", "-c", "import time; import zrc; print('ZRC server ready'); time.sleep(3600)"]
